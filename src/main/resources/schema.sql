@@ -1,50 +1,51 @@
 -- ==========================
 -- User Table
 -- ==========================
-CREATE TABLE NappsUser (
-    id UUID DEFAULT RANDOM_UUID(),
+CREATE TABLE IF NOT EXISTS NappsUser (
+    id TEXT NOT NULL,
     CONSTRAINT pk_nappsuser PRIMARY KEY (id),
-    full_name VARCHAR(255) NOT NULL,
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL,
-    username VARCHAR(100) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    hashed_password VARCHAR(255) NOT NULL,
-    avatar_url VARCHAR(255),
+    full_name TEXT NOT NULL,
+    first_name TEXT NOT NULL,
+    last_name TEXT NOT NULL,
+    username TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    hashed_password TEXT NOT NULL,
+    avatar_url TEXT,
     date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     date_last_login TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
-CREATE INDEX idx_user_username ON NappsUser(username);
-CREATE INDEX idx_user_email ON NappsUser(email);
+CREATE INDEX IF NOT EXISTS idx_user_username ON NappsUser(username);
+CREATE INDEX IF NOT EXISTS idx_user_email ON NappsUser(email);
 
 -- ==========================
 -- Account Table
 -- ==========================
-CREATE TABLE Account (
-    id UUID DEFAULT RANDOM_UUID(),
+CREATE TABLE IF NOT EXISTS Account (
+    id TEXT NOT NULL,
     CONSTRAINT pk_account PRIMARY KEY (id),
-    type VARCHAR(50) NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    institution VARCHAR(255) NOT NULL,
+    type TEXT NOT NULL,
+    name TEXT NOT NULL,
+    institution TEXT NOT NULL,
     credit_limit INTEGER,
-    image_url VARCHAR(255),
+    image_url TEXT,
     date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
-CREATE INDEX idx_account_type ON Account(type);
-CREATE INDEX idx_account_institution ON Account(institution);
+CREATE INDEX IF NOT EXISTS idx_account_type ON Account(type);
+CREATE INDEX IF NOT EXISTS idx_account_institution ON Account(institution);
 
 -- ==========================
 -- AccountPartition Table
 -- ==========================
-CREATE TABLE AccountPartition (
-    id UUID DEFAULT RANDOM_UUID(),
+CREATE TABLE IF NOT EXISTS AccountPartition (
+    id TEXT NOT NULL,
     CONSTRAINT pk_accountpartition PRIMARY KEY (id),
-    parent_account_id UUID NOT NULL,
-    name VARCHAR(255) NOT NULL,
+    parent_account_id TEXT NOT NULL,
+    type TEXT NOT NULL, -- "main", which is not deletable, or "custom", which is --
+    name TEXT NOT NULL,
     balance INTEGER NOT NULL,
     date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -52,18 +53,18 @@ CREATE TABLE AccountPartition (
         REFERENCES Account(id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_accountpartition_parent_account_id ON AccountPartition(parent_account_id);
-CREATE UNIQUE INDEX uq_accountpartition_parent_name ON AccountPartition(parent_account_id, name);
+CREATE INDEX IF NOT EXISTS idx_accountpartition_parent_account_id ON AccountPartition(parent_account_id);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_accountpartition_parent_name ON AccountPartition(parent_account_id, name);
 
 -- ==========================
 -- AccountOwnership Table
 -- ==========================
-CREATE TABLE AccountOwnership (
-    id UUID DEFAULT RANDOM_UUID(),
+CREATE TABLE IF NOT EXISTS AccountOwnership (
+    id TEXT NOT NULL,
     CONSTRAINT pk_accountownership PRIMARY KEY (id),
-    user_id UUID NOT NULL,
-    account_id UUID NOT NULL,
-    ownership_type VARCHAR(50) NOT NULL,
+    user_id TEXT NOT NULL,
+    account_id TEXT NOT NULL,
+    type TEXT NOT NULL,
     date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     CONSTRAINT fk_accountownership_user FOREIGN KEY (user_id)
@@ -72,23 +73,24 @@ CREATE TABLE AccountOwnership (
         REFERENCES Account(id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_accountownership_user_id ON AccountOwnership(user_id);
-CREATE INDEX idx_accountownership_account_id ON AccountOwnership(account_id);
-CREATE INDEX idx_accountownership_type ON AccountOwnership(ownership_type);
-CREATE UNIQUE INDEX uq_accountownership_user_account ON AccountOwnership(user_id, account_id);
+CREATE INDEX IF NOT EXISTS idx_accountownership_user_id ON AccountOwnership(user_id);
+CREATE INDEX IF NOT EXISTS idx_accountownership_account_id ON AccountOwnership(account_id);
+CREATE INDEX IF NOT EXISTS idx_accountownership_type ON AccountOwnership(ownership_type);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_accountownership_user_account ON AccountOwnership(user_id, account_id);
 
 -- ==========================
 -- Transaction Table
 -- ==========================
-CREATE TABLE FinancialTransaction (
-    id UUID DEFAULT RANDOM_UUID(),
+CREATE TABLE IF NOT EXISTS FinancialTransaction (
+    id TEXT NOT NULL,
     CONSTRAINT pk_financialtransaction PRIMARY KEY (id),
-    user_id UUID NOT NULL,
-    type VARCHAR(50) NOT NULL,
-    from_account_id UUID,
-    to_account_id UUID,
-    from_name VARCHAR(255),
-    to_name VARCHAR(255),
+    user_id TEXT NOT NULL,
+    type TEXT NOT NULL, -- include internal transfer, credit card balance payment, payment, and deposit and validate the from's and to's accordingly
+    amount INTEGER NOT NULL,
+    from_account_id TEXT,
+    to_account_id TEXT,
+    from_name TEXT,
+    to_name TEXT,
     transaction_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     CONSTRAINT fk_transaction_user FOREIGN KEY (user_id)
@@ -99,8 +101,8 @@ CREATE TABLE FinancialTransaction (
         REFERENCES Account(id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_transaction_user_id ON FinancialTransaction(user_id);
-CREATE INDEX idx_transaction_type ON FinancialTransaction(type);
-CREATE INDEX idx_transaction_from_account_id ON FinancialTransaction(from_account_id);
-CREATE INDEX idx_transaction_to_account_id ON FinancialTransaction(to_account_id);
-CREATE INDEX idx_transaction_date ON FinancialTransaction(transaction_date);
+CREATE INDEX IF NOT EXISTS idx_transaction_user_id ON FinancialTransaction(user_id);
+CREATE INDEX IF NOT EXISTS idx_transaction_type ON FinancialTransaction(type);
+CREATE INDEX IF NOT EXISTS idx_transaction_from_account_id ON FinancialTransaction(from_account_id);
+CREATE INDEX IF NOT EXISTS idx_transaction_to_account_id ON FinancialTransaction(to_account_id);
+CREATE INDEX IF NOT EXISTS idx_transaction_date ON FinancialTransaction(transaction_date);
